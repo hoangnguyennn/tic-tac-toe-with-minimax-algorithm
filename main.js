@@ -42,10 +42,11 @@ function click2cell(cell) {
     if(typeof GAMEBOARD[cell.target.id] === 'number') { // nếu ô đó chưa được đánh
         makeOX(cell.target.id, HUMAN_PLAYER); // đánh nước đi của người chơi
 
-        if(!draw()) { // nếu không hòa thì đến lượt đi của bot
-            makeOX(bestWay(), BOT_PLAYER);
+        let gamewon = checkWin(GAMEBOARD, HUMAN_PLAYER);
+        if(gamewon) {
+            gameOver(gamewon); // hiển thị thông báo người chiến thắng
         } else {
-            gameOver();
+            makeOX(bestWay(), BOT_PLAYER);
         }
     }
 }
@@ -83,6 +84,7 @@ function checkWin(board, player) {
 }
 
 function gameOver(gamewon) {
+    console.log(gamewon);
     if(gamewon) {
         var playerText = gamewon.player === BOT_PLAYER ? LOSE_TITLE : WIN_TITLE;
 
@@ -115,17 +117,19 @@ function bestWay() {
     return minimax(GAMEBOARD, BOT_PLAYER).index;
 }
 
-function minimax(board, player) {
+function minimax(board, player, depth = 0) {
     var availableCells = emptyCell();
 
+    // điều kiện dừng
     if(checkWin(board, HUMAN_PLAYER)) {
-        return {score: -10}
+        return {score: -10, depth: depth}
     } else if(checkWin(board, BOT_PLAYER)) {
-        return {score: 10}
+        return {score: 10, depth: depth}
     } else if(availableCells.length === 0) {
-        return {score: 0}
+        return {score: 0, depth: depth}
     }
 
+    // đệ quy
     var moves = new Array();
     for(var i = 0; i < availableCells.length; i++) {
         var move = new Object();
@@ -133,11 +137,13 @@ function minimax(board, player) {
         board[availableCells[i]] = player; // đánh nước đi
 
         if(player === BOT_PLAYER) {
-            var result = minimax(board, HUMAN_PLAYER);
+            var result = minimax(board, HUMAN_PLAYER, depth + 1);
             move.score = result.score;
+            move.depth = result.depth;
         } else {
-            var result = minimax(board, BOT_PLAYER);
+            var result = minimax(board, BOT_PLAYER, depth + 1);
             move.score = result.score;
+            move.depth = result.depth;
         }
 
         board[availableCells[i]] = move.index;
@@ -147,21 +153,24 @@ function minimax(board, player) {
     var bestMove;
     if(player === BOT_PLAYER) {
         var bestScore = -1000;
+        var bestDepth = 9;
         for(var i = 0; i < moves.length; i++) {
-            if(moves[i].score > bestScore) {
+            if(moves[i].score >= bestScore && moves[i].depth < bestDepth) {
                 bestScore = moves[i].score;
+                bestDepth = moves[i].depth;
                 bestMove = i;
             }
         }
     } else {
         var bestScore = 1000;
+        var bestDepth = 9;
         for(var i = 0; i < moves.length; i++) {
-            if(moves[i].score < bestScore) {
+            if(moves[i].score <= bestScore && moves[i].depth < bestDepth) {
                 bestScore = moves[i].score;
+                bestDepth = moves[i].depth;
                 bestMove = i;
             }
         }
     }
-
     return moves[bestMove];
 }
