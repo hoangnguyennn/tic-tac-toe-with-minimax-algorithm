@@ -42,11 +42,10 @@ function click2cell(cell) {
     if(typeof GAMEBOARD[cell.target.id] === 'number') { // nếu ô đó chưa được đánh
         makeOX(cell.target.id, HUMAN_PLAYER); // đánh nước đi của người chơi
 
-        let gamewon = checkWin(GAMEBOARD, HUMAN_PLAYER);
-        if(gamewon) {
-            gameOver(gamewon); // hiển thị thông báo người chiến thắng
-        } else {
+        if(!draw()) {
             makeOX(bestWay(), BOT_PLAYER);
+        } else {
+            gameOver();
         }
     }
 }
@@ -114,7 +113,8 @@ function emptyCell() {
 }
 
 function bestWay() {
-    return minimax(GAMEBOARD, BOT_PLAYER).index;
+    var res = minimax(GAMEBOARD, BOT_PLAYER);
+    return res.index;
 }
 
 function minimax(board, player, depth = 0) {
@@ -155,7 +155,11 @@ function minimax(board, player, depth = 0) {
         var bestScore = -1000;
         var bestDepth = 9;
         for(var i = 0; i < moves.length; i++) {
-            if(moves[i].score >= bestScore && moves[i].depth < bestDepth) {
+            if(moves[i].score > bestScore) {
+                bestScore = moves[i].score;
+                bestDepth = moves[i].depth;
+                bestMove = i;
+            } else if(moves[i].score == bestScore && moves[i].depth < bestDepth) {
                 bestScore = moves[i].score;
                 bestDepth = moves[i].depth;
                 bestMove = i;
@@ -165,7 +169,11 @@ function minimax(board, player, depth = 0) {
         var bestScore = 1000;
         var bestDepth = 9;
         for(var i = 0; i < moves.length; i++) {
-            if(moves[i].score <= bestScore && moves[i].depth < bestDepth) {
+            if(moves[i].score < bestScore) {
+                bestScore = moves[i].score;
+                bestDepth = moves[i].depth;
+                bestMove = i;
+            } else if(moves[i].score == bestScore && moves[i].depth < bestDepth) {
                 bestScore = moves[i].score;
                 bestDepth = moves[i].depth;
                 bestMove = i;
